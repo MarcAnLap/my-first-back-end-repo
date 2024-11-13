@@ -1,0 +1,103 @@
+API Documentation
+
+This API provides functionality for managing a menu, categories, orders, and carts for a restaurant application.
+
+Authentication
+Most endpoints require authentication via token-based access.
+Obtain a token with the /api-token-auth/ endpoint, then include the token in requests using the Authorization header as Token <your_token>.
+Endpoints
+
+1. Menu Management
+
+List & Create Menu Items
+URL: /menu-items
+Method: GET or POST
+Permissions:
+GET: Public
+POST: Authenticated users only (e.g., Admin)
+Description: Retrieves a list of menu items or creates a new menu item.
+Parameters:
+Optional Filters for GET: price, inventory
+Ordering Fields: price, inventory
+Search Fields: category__title
+Responses:
+GET: List of menu items
+POST: Created menu item
+Retrieve, Update, or Delete a Menu Item
+URL: /menu-items/<int:pk>
+Method: GET, PUT, PATCH, DELETE
+Permissions: Authenticated users (e.g., Admin for PUT, DELETE)
+Description: Retrieve, update, or delete a specific menu item.
+
+2. Category Management
+
+List & Create Categories
+URL: /customer/categories/
+Method: GET or POST
+Permissions:
+GET: Authenticated users
+POST: Admin users only
+Description: Lists all categories or allows Admin to create a new category.
+
+3. Orders
+
+Place an Order
+URL: /customer/order/
+Method: POST
+Permissions: Authenticated users only
+Description: Places a new order with items from the user's cart.
+Update Order Status (Delivery Team Only)
+URL: /delivery/order/update/
+Method: PATCH
+Permissions: Authenticated Delivery Team members
+Description: Updates an order’s status to "delivered".
+
+4. Cart
+
+Add Item to Cart
+URL: /customer/cart/add/
+Method: POST
+Permissions: Authenticated users only
+Description: Adds a menu item to the user's cart.
+
+5. Custom Views and Permissions
+
+Secret View
+URL: /secret/
+Method: GET
+Permissions: Authenticated users only
+Description: Returns a secret message only accessible to authenticated users.
+Manager-Only View
+URL: /manager-view/
+Method: GET
+Permissions: Authenticated users in the Manager group
+Description: Provides a restricted message viewable only by users in the Manager group.
+
+6. Rate Limiting
+
+Throttle Check for Anonymous Users
+URL: /throttle-check-anon/
+Method: GET
+Permissions: Public
+Throttle: Limited by anonymous rate settings
+Description: Checks if the anonymous user is within their rate limit.
+Throttle Check for Authenticated Users
+URL: /throttle-check-user/
+Method: GET
+Permissions: Authenticated users only
+Throttle: Limited by user rate settings
+Description: Checks if the authenticated user is within their rate limit.
+Permissions Overview
+Custom permissions classes are implemented to restrict access:
+
+IsAdminUser: Only users in the Admin group
+IsManagerUser: Only users in the Manager group
+IsDeliveryUser: Only users in the Delivery Team group
+Setup Instructions for Groups and Permissions
+To set up initial permissions:
+
+Run setup_groups() to create groups and assign permissions, if not already configured.
+Adjust permissions based on application requirements (e.g., allow Admins to add menu items).
+This should serve as a foundational structure. 
+You may wish to expand each section with example request/response pairs and any additional setup instructions for specific permissions. 
+Let me know if you need further customization!

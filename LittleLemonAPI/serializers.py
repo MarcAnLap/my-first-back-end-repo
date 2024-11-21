@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from .models import Category, MenuItem, Cart, Order, OrderItem
+from decimal import Decimal
 
 class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem
         fields = ['id', 'title', 'price', 'inventory']
         extra_kwargs = {
-            'price': {'min_value': 2},
+            'price': {'min_value': Decimal('2.00')},
             'inventory': {'min_value': 0}
         }
 

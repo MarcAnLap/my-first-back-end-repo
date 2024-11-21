@@ -1,0 +1,181 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<section>
+  <article>
+    <h1>Make a reservation</h1>
+    <!--Begin row-->
+    <div class="row">
+      <!--Begin col-->
+      <div class="column">
+        {% csrf_token %}
+        <form method="POST" id="form">
+          <!-- {% csrf_token %} -->
+          <input type="hidden" id="booking_id" />
+          <input
+            type="hidden"
+            name="csrfmiddlewaretoken"
+            value="{{ csrf_token }}"
+          />
+
+          <p>
+            <label for="first_name">Name:</label>
+            <input
+              type="text"
+              placeholder="Your Name"
+              maxlength="200"
+              required=""
+              id="first_name"
+            />
+          </p>
+          <p>
+            <label for="reservation_date">Reservation date:</label>
+            <input type="date" id="reservation_date" name="reservation_date" />
+          </p>
+
+          <p>
+            <label for="reservation_slot">Reservation time:</label>
+
+            <select id="reservation_slot" name="reservation_slot">
+              <option value="0" disabled>Select time</option>
+              <option value="8:00 AM">8:00 AM</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="6:00 PM">6:00 PM</option>
+            </select>
+          </p>
+
+          <p>
+            <label for="guest_number">Guest number:</label>
+            <input
+              type="number"
+              id="guest_number"
+              name="guest_number"
+              placeholder="Number of Guests"
+              min="1"
+              max="20"
+              required
+            />
+          </p>
+          <button type="button" id="button">Reserve</button>
+        </form>
+      </div>
+      <!--End col-->
+
+      <!--Begin col-->
+      <div class="column">
+        <h2>Bookings For <span id="today"></span></h2>
+        <div id="bookings"></div>
+      </div>
+      <!--End col-->
+    </div>
+    <!--End row-->
+  </article>
+</section>
+<script>
+  const date = new Date();
+  document.getElementById("reservation_date").value = `${date.getFullYear()}-${(
+    date.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+
+    const validateForm = () => {
+      const firstName = document.getElementById("first_name").value;
+      const reservationSlot = document.getElementById("reservation_slot").value;
+      const guestNumber = document.getElementById("guest_number").value;
+
+      if (!firstName || !reservationSlot || !guestNumber) {
+          alert("Please fill in all fields.");
+          return false;
+      }
+      return true;
+  };
+
+  const showLoading = (show) => {
+      const bookingsContainer = document.getElementById("bookings");
+      if (show) {
+          bookingsContainer.innerHTML = "<p>Loading...</p>";
+      } else {
+          bookingsContainer.innerHTML = "";
+      }
+  };
+
+// Fetch bookings for selected date
+
+    const getBookings = async () => {
+      try {
+        const reservationDate = document.getElementById("reservation_date").value;
+        document.getElementById("today").innerText = reservationDate;
+        showLoading(true);
+  
+        const response = await fetch(`/bookings?date=${reservationDate}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        showLoading(false);
+  
+        const bookingsContainer = document.getElementById("bookings");
+        bookingsContainer.innerHTML = ''; // Clear previous bookings
+  
+        if (data.length === 0) {
+          bookingsContainer.innerHTML = "<p>No bookings for this date.</p>";
+          return;
+        }
+  
+        data.forEach(record => {
+          const markup = `
+            <div class="booking-record">
+              <strong>${record.first_name}</strong> - ${record.reservation_slot} - ${record.guest_number} guests
+            </div>
+          `;
+          bookingsContainer.insertAdjacentHTML('beforeend', markup);
+        });
+      } catch (error) {
+        alert("Failed to fetch bookings. Please try again.");
+        showLoading(false);
+      }
+    };
+  
+
+  document
+    .getElementById("button")
+    .addEventListener("click", async () => {
+      if (!validateForm()) {
+        return;
+      }
+      const csrfToken = document.querySelector(
+        "[name=csrfmiddlewaretoken]"
+      ).value;
+      const firstName = document.getElementById("first_name").value;
+      const reservationDate = document.getElementById("reservation_date").value;
+      const reservationSlot = document.getElementById('reservation_slot').value;
+      // const bookingId = document.getElementById("booking_id") ? document.getElementById("booking_id").value : null;
+      const bookingId = document.getElementById("booking_id").value || null;
+
+      // Make API call to create or update booking
+      const response = await fetch("/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+        },
+        body: JSON.stringify({
+          booking_id: bookingId,
+          first_name: firstName,
+          reservation_date: reservationDate,
+          reservation_slot: reservationSlot,
+          guest_number: document.getElementById("guest_number").value,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.error) {
+        alert('Slot already booked');
+      } else {
+        alert("Reservation successful!");
+        getBookings();
+      }
+    });
+</script>
+{% endblock %}

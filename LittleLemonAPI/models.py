@@ -16,6 +16,7 @@ class MenuItem(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     featured = models.BooleanField(db_index=True, default=False)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, default=get_default_category_id)
+    image = models.ImageField(upload_to='menu_images/', null=True, blank=True)  
     inventory = models.SmallIntegerField()
 
     def __str__(self):
@@ -66,3 +67,14 @@ class OrderItem(models.Model):
 
     class Meta:
         unique_together = ('order','menuitem')
+
+class Booking(models.Model):
+   first_name = models.CharField(max_length=200)    
+   last_name = models.CharField(max_length=200)
+   reservation_date = models.DateField(null=True, blank=True)  # Utilisez DateField ici au lieu de forms.DateField()
+   reservation_slot = models.CharField(max_length=20)
+   guest_number = models.IntegerField(null=True, blank=True)
+   comment = models.CharField(max_length=1000)
+
+   def __str__(self):
+      return self.first_name + ' ' + self.last_name

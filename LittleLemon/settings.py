@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -60,7 +60,7 @@ ROOT_URLCONF = 'LittleLemon.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['LittleLemonAPI/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,8 +81,15 @@ WSGI_APPLICATION = 'LittleLemon.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+  'ENGINE': 'django.db.backends.mysql',  # Use MySQL backend
+        'NAME': 'MenuItem',  # Your database name
+        'USER': 'root',  # Your MySQL username
+        'PASSWORD': 'CarnalFliko765?9?!',  # Your MySQL password
+        'HOST': 'localhost',  # Set this to 'localhost' or your MySQL server's IP
+        'PORT': '3306',  # Default MySQL port
+          'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 
@@ -121,7 +128,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -170,3 +181,7 @@ DJOSER = {
     "USER_ID_FIELD": "username",
     # "LOGIN_FIELD": "email"
 }
+
+# Media files (uploads, images, etc.)
+MEDIA_URL = '/media/'  # URL path that will be used to serve media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Local directory on the server to store media files

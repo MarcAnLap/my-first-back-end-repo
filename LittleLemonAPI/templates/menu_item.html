@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section>
+    <article>
+        <h1 id="menu-item-title"></h1>
+        <p id="menu-item-price"></p>
+        <p id="menu-item-description"></p>
+        <img style="width: 380px; height: auto; object-fit: cover;" id="menu-item-image" alt="Menu Item Image" /> 
+    </article>
+</section>
+
+
+
+<script>
+  // Get the menu item ID from the URL, assuming the URL is like '/menu_item/1/'
+  const urlParts = window.location.pathname.split('/');
+  const menuItemId = urlParts[urlParts.length - 2]; // This should give the ID
+
+  console.log("Menu Item ID:", menuItemId);  // Debugging log
+
+  // Fetching single menu item details from the API
+  fetch(`/menu-items/${menuItemId}`)
+    .then(response => {
+      console.log("Response received:", response); // Debugging log
+      return response.json();
+    })
+    .then(item => {
+      console.log("Fetched Item:", item); // Debugging log
+      if (item) {
+        // Setting the menu item data dynamically
+        document.getElementById('menu-item-title').textContent = item.title;
+        document.getElementById('menu-item-price').textContent = `Price: $${item.price}`;
+        document.getElementById('menu-item-description').textContent = item.description || 'No description available';
+        document.getElementById('menu-item-image').src = `/static/img/menu_items/${item.title}.jpg`;  // Adjusting the image path
+      } else {
+        console.error("Item not found");
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching menu item details:', error);
+      document.querySelector('article').innerHTML = "<p>Failed to load menu item details.</p>";
+    });
+</script>
+
+{% endblock %}

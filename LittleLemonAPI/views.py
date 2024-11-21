@@ -8,11 +8,17 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
+from django.shortcuts import render
+from .forms import BookingForm
+from django.http import JsonResponse
+from .models import Booking
+from django.core import serializers
+import json
+from datetime import datetime
+from django.views.decorators.csrf import csrf_protect
 
 
-# class MenuItemsView(generics.ListCreateAPIView):
-#     queryset = MenuItem.objects.all()
-#     serializer_class = MenuItemSerializer
+
 
 class MenuItemsView(generics.ListCreateAPIView):
     queryset = MenuItem.objects.all()
@@ -37,12 +43,6 @@ class SingleMenuItemView(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Category.objects.all()
 #     serializer_class = CategorySerializer
 
-# class MenuItemsView(generics.ListCreateAPIView):
-#     queryset = MenuItem.objects.all()
-#     serializer_class = MenuItemSerializer
-#     ordering_fields = ['price', 'inventory']
-#     filterset_fields = ['price', 'inventory']
-#     search_fields = ['category__title']
 
 # Function-based view with @api_view decorator
 @api_view(['GET'])
@@ -174,7 +174,6 @@ class MenuItemListView(generics.ListAPIView):
     pagination_class = None  # 16. Pagination could be added here
 
 # 18. Customers - Add items to Cart
-
 class AddToCartView(generics.CreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
@@ -192,4 +191,71 @@ class PlaceOrderView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+# Create your views here.
+def home(request):
+    return render(request, 'index.html')
 
+
+def about(request):
+    return render(request, 'about.html')
+
+def book(request):
+    form = BookingForm()
+    if request.method == 'POST':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            form.save()
+    context = {'form':form}
+    return render(request, 'book.html', context)
+
+def menu(request):
+    menu_data = MenuItem.objects.all()
+    main_data = {"menu": menu_data}
+    return render(request, 'menu.html', {"menu": main_data})
+
+@csrf_protect
+def bookings(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        booking_id = data.get('booking_id', None)
+        existing = Booking.objects.filter(
+            reservation_date=data['reservation_date'],
+            reservation_slot=data['reservation_slot']
+        ).exclude(id=booking_id).exists()
+        
+        if not existing:
+            if booking_id:  # Update existing booking
+                booking = Booking.objects.get(id=booking_id)
+                booking.first_name = data['first_name']
+                booking.reservation_date = data['reservation_date']
+                booking.reservation_slot = data['reservation_slot']
+                booking.guest_number = data['guest_number']
+            else:  # Create new booking
+                booking = Booking(
+                    first_name=data['first_name'],
+                    reservation_date=data['reservation_date'],
+                    reservation_slot=data['reservation_slot'],
+                    guest_number=data['guest_number']
+            )
+            booking.save()
+            return JsonResponse({'success': 1})
+        else:
+            return JsonResponse({'error': 1}, content_type='application/json')
+      # Fetch bookings for the specified date
+    date = request.GET.get('date', datetime.today().date())
+    bookings = Booking.objects.filter(reservation_date=date)
+    # Serialize the booking data to return as JSON
+    # booking_json = serializers.serialize('json', bookings)
+    # return JsonResponse(booking_json, safe=False, content_type='application/json')
+    return JsonResponse(list(bookings.values('first_name', 'reservation_slot', 'guest_number')), safe=False)
+
+def bookingpage(request):
+    return render(request, 'bookings.html')
+
+
+def display_menu_item(request, pk=None): 
+    if pk: 
+        menu_item = MenuItem.objects.get(pk=pk) 
+    else: 
+        menu_item = "" 
+    return render(request, 'menu_item.html', {"menu_item": menu_item}) 

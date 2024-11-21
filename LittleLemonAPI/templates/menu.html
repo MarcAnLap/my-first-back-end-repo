@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Menu</h1>
+<div class="menu-container">
+    <div id="menu-items"></div>
+</div>
+
+<script>
+  // Fetching menu items from the API using fetch
+  fetch('/menu-items')
+    .then(response => response.json())
+    .then(data => {
+      console.log("Menu Items fetched:", data); // Debugging log
+      const menuContainer = document.getElementById('menu-items');
+      if (data && data.length) {
+        data.forEach(item => {
+          // Creating a list item for each menu item
+          const menuItemElement = document.createElement('div');
+          menuItemElement.classList.add('menu-item');
+          
+          const menuTitle = document.createElement('h3');
+          menuTitle.textContent = item.title;
+          
+          const menuPrice = document.createElement('span');
+          menuPrice.classList.add('menu-price');
+          menuPrice.textContent = `$${item.price}`;
+
+          const menuLink = document.createElement('a');
+          menuLink.href = `/menu_item/${item.id}/`;  // Linking to the individual menu item page
+          menuLink.textContent = "View Details";
+
+          menuItemElement.appendChild(menuTitle);
+          menuItemElement.appendChild(menuPrice);
+          menuItemElement.appendChild(menuLink);
+          
+          menuContainer.appendChild(menuItemElement);
+        });
+      } else {
+        console.log("No menu items available");
+        menuContainer.innerHTML = "<p>No menu items found.</p>";
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching menu items:', error);
+      document.getElementById('menu-items').innerHTML = "<p>Failed to load menu items.</p>";
+    });
+</script>
+
+{% endblock %}

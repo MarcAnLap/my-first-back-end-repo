@@ -238,9 +238,10 @@ def bookings(request):
                     guest_number=data['guest_number']
             )
             booking.save()
-            return JsonResponse({'success': 1})
+            return JsonResponse({'success': 1}, status=200)
         else:
-            return JsonResponse({'error': 1}, content_type='application/json')
+            return JsonResponse({'error': 1}, content_type='application/json', status=400)
+            
       # Fetch bookings for the specified date
     date = request.GET.get('date', datetime.today().date())
     bookings = Booking.objects.filter(reservation_date=date)

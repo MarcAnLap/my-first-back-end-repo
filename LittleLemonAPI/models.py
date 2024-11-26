@@ -19,6 +19,11 @@ class MenuItem(models.Model):
     image = models.ImageField(upload_to='menu_images/', null=True, blank=True)  
     inventory = models.SmallIntegerField()
 
+    def clean(self):
+        """Custom validation for the inventory field."""
+        if self.inventory < 0:
+            raise ValidationError('Inventory cannot be negative.')
+
     def __str__(self):
         return self.title
 
